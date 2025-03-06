@@ -244,6 +244,5 @@ func (s *E2ESuite) Given() *Given {
 		hydrator:          s.hydrator,
 		kubeClient:        s.KubeClient,
 		bearerToken:       bearerToken,
-		restConfig:        s.RestConfig,
 	}
 }

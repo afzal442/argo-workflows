@@ -52,10 +52,6 @@ const (
 	// AnnotationKeyArtifactGCStrategy is listed as an annotation on the Artifact GC Pod to identify
 	// the strategy whose artifacts are being deleted
 	AnnotationKeyArtifactGCStrategy = workflow.WorkflowFullName + "/artifact-gc-strategy"
-
-	// LabelParallelismLimit is a label applied on namespace objects to control the per namespace parallelism.
-	LabelParallelismLimit = workflow.WorkflowFullName + "/parallelism-limit"
-
 	// AnnotationKeyPodGCStrategy is listed as an annotation on the Pod
 	// the strategy for the pod, in case the pod is orphaned from its workflow
 	AnnotationKeyPodGCStrategy = workflow.WorkflowFullName + "/pod-gc-strategy"
@@ -67,11 +63,6 @@ const (
 	LabelKeyCreator                  = workflow.WorkflowFullName + "/creator"
 	LabelKeyCreatorEmail             = workflow.WorkflowFullName + "/creator-email"
 	LabelKeyCreatorPreferredUsername = workflow.WorkflowFullName + "/creator-preferred-username"
-	// Who action on this workflow.
-	LabelKeyActor                  = workflow.WorkflowFullName + "/actor"
-	LabelKeyActorEmail             = workflow.WorkflowFullName + "/actor-email"
-	LabelKeyActorPreferredUsername = workflow.WorkflowFullName + "/actor-preferred-username"
-	LabelKeyAction                 = workflow.WorkflowFullName + "/action"
 	// LabelKeyCompleted is the metadata label applied on workflows and workflow pods to indicates if resource is completed
 	// Workflows and pods with a completed=true label will be ignored by the controller.
 	// See also `LabelKeyWorkflowArchivingStatus`.

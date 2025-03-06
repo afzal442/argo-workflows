@@ -50,7 +50,7 @@ type Controller struct {
 	config        *argoConfig.Config
 	kubeclientset kubernetes.Interface
 	wfInformer    cache.SharedIndexInformer
-	workqueue     workqueue.TypedRateLimitingInterface[string]
+	workqueue     workqueue.RateLimitingInterface
 	podInformer   cache.SharedIndexInformer
 	callBack      podEventCallback
 	log           *logrus.Logger
@@ -64,7 +64,7 @@ func NewController(ctx context.Context, config *argoConfig.Config, restConfig *r
 		config:        config,
 		kubeclientset: clientSet,
 		wfInformer:    wfInformer,
-		workqueue:     metrics.RateLimiterWithBusyWorkers(ctx, workqueue.DefaultTypedControllerRateLimiter[string](), "pod_cleanup_queue"),
+		workqueue:     metrics.RateLimiterWithBusyWorkers(ctx, workqueue.DefaultControllerRateLimiter(), "pod_cleanup_queue"),
 		podInformer:   newInformer(ctx, clientSet, &config.InstanceID, &namespace),
 		log:           log,
 		callBack:      callback,
@@ -112,14 +112,11 @@ func (c *Controller) HasSynced() func() bool {
 // Run runs the pod controller
 func (c *Controller) Run(ctx context.Context, workers int) {
 	defer c.workqueue.ShutDown()
-	if !cache.WaitForCacheSync(ctx.Done(), c.wfInformer.HasSynced) {
-		return
-	}
 	go c.podInformer.Run(ctx.Done())
-	if !cache.WaitForCacheSync(ctx.Done(), c.HasSynced()) {
+	if !cache.WaitForCacheSync(ctx.Done(), c.HasSynced(), c.wfInformer.HasSynced) {
 		return
 	}
-	for range workers {
+	for i := 0; i < workers; i++ {
 		go wait.UntilWithContext(ctx, c.runPodCleanup, time.Second)
 	}
 	<-ctx.Done()
