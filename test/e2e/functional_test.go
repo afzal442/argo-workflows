@@ -159,6 +159,7 @@ spec:
 }
 
 func (s *FunctionalSuite) TestWorkflowRetention() {
+	listOptions := metav1.ListOptions{LabelSelector: "workflows.argoproj.io/phase=Failed"}
 	s.Given().
 		Workflow("@testdata/exit-1.yaml").
 		When().
@@ -174,7 +175,9 @@ func (s *FunctionalSuite) TestWorkflowRetention() {
 		When().
 		SubmitWorkflow().
 		WaitForWorkflow(fixtures.ToBeFailed).
-		WaitForWorkflowListFailedCount(2)
+		WaitForWorkflowList(listOptions, func(list []wfv1.Workflow) bool {
+			return len(list) == 2
+		})
 }
 
 // in this test we create a poi quota, and then  we create a workflow that needs one more pod than the quota allows
@@ -1441,5 +1444,22 @@ func (s *FunctionalSuite) TestWorkflowParallelismDAGFailFast() {
 			assert.Equal(t, "template has failed or errored children and failFast enabled", status.Message)
 			assert.Equal(t, wfv1.NodeFailed, status.Nodes.FindByDisplayName("task1").Phase)
 			assert.Equal(t, wfv1.NodeSucceeded, status.Nodes.FindByDisplayName("task2").Phase)
+		})
+}
+
+func (s *FunctionalSuite) TestWorkflowInvalidServiceAccountError() {
+	s.Given().
+		Workflow("@expectedfailures/serviceaccount-insufficient-permissions.yaml").
+		When().
+		SubmitWorkflow().
+		WaitForWorkflow(fixtures.ToBeErrored).
+		Then().
+		ExpectContainerLogs("main", func(t *testing.T, logs string) {
+			assert.Contains(t, logs, "hello argo")
+		}).
+		ExpectContainerLogs("wait", func(t *testing.T, logs string) {
+			assert.Contains(t, logs, "Error: workflowtaskresults.argoproj.io is forbidden: User \"system:serviceaccount:argo:github.com\" cannot create resource")
+			// Shouldn't have print help text
+			assert.NotContains(t, logs, "Usage:")
 		})
 }
