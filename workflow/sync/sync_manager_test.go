@@ -47,10 +47,10 @@ metadata:
 spec:
   entrypoint: whalesay
   synchronization:
-    semaphores:
-      - configMapKeyRef:
-          key: workflow
-          name: my-config
+    semaphore:
+      configMapKeyRef:
+        key: workflow
+        name: my-config
   templates:
   - container:
       args:
@@ -98,10 +98,10 @@ metadata:
 spec:
  entrypoint: whalesay
  synchronization:
-   semaphores:
-     - configMapKeyRef:
-         name: my-config
-         key: workflow
+   semaphore:
+     configMapKeyRef:
+       name: my-config
+       key: workflow
  templates:
  - name: whalesay
    container:
@@ -163,10 +163,10 @@ spec:
     name: sleep-n-sec
     outputs: {}
     synchronization:
-      semaphores:
-        - configMapKeyRef:
-            key: template
-            name: my-config
+      semaphore:
+        configMapKeyRef:
+          key: template
+          name: my-config
 status:
   finishedAt: null
   nodes:
@@ -290,8 +290,8 @@ metadata:
 spec:
  entrypoint: whalesay
  synchronization:
-   mutexes:
-     - name: my-mutex
+   mutex:
+     name: my-mutex
  templates:
  - name: whalesay
    container:
@@ -721,7 +721,7 @@ func TestCheckWorkflowExistence(t *testing.T) {
 		assert.Len(mutex.getCurrentPending(), 1)
 		assert.Len(semaphore.getCurrentHolders(), 1)
 		assert.Len(semaphore.getCurrentPending(), 1)
-		syncManager.CheckWorkflowExistence(ctx)
+		syncManager.CheckWorkflowExistence()
 		assert.Empty(mutex.getCurrentHolders())
 		assert.Len(mutex.getCurrentPending(), 1)
 		assert.Empty(semaphore.getCurrentHolders())
@@ -767,8 +767,8 @@ spec:
           memory: 100Mi
     name: load-command
     synchronization:
-      mutexes:
-        - name: dag-2-task-1
+      mutex:
+        name: dag-2-task-1
   - container:
       args:
       - echo 'django command!'
@@ -783,10 +783,10 @@ spec:
           memory: 100Mi
     name: django-command
     synchronization:
-      semaphores:
-        - configMapKeyRef:
-            key: test-sem
-            name: my-config
+      semaphore:
+        configMapKeyRef:
+          key: test-sem
+          name: my-config
   ttlStrategy:
     secondsAfterCompletion: 600
 status:
@@ -906,8 +906,8 @@ spec:
   arguments: {}
   entrypoint: whalesay
   synchronization:
-    mutexes:
-      - name: my-mutex
+    mutex:
+      name: my-mutex
   templates:
   - container:
       args:
@@ -980,8 +980,8 @@ spec:
     name: acquire-lock
     outputs: {}
     synchronization:
-      mutexes:
-        - name: workflow
+      mutex:
+        name: workflow
 status:
   artifactGCStatus:
     notSpecified: true

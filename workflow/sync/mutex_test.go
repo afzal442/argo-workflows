@@ -23,8 +23,8 @@ metadata:
 spec:
   entrypoint: whalesay
   synchronization:
-    mutexes:
-      - name: test
+    mutex:
+      name: test
   templates:
   - name: whalesay
     container:
@@ -42,9 +42,9 @@ metadata:
 spec:
   entrypoint: whalesay
   synchronization:
-    mutexes:
-      - namespace: other
-        name: test
+    mutex:
+      namespace: other
+      name: test
   templates:
   - name: whalesay
     container:
@@ -70,8 +70,8 @@ metadata:
 spec:
   entrypoint: whalesay
   synchronization:
-    mutexes:
-      - name: test
+    mutex:
+      name: test
   templates:
   - container:
       args:
@@ -321,8 +321,8 @@ spec:
       name: ""
     name: acquire-lock
     synchronization:
-      mutexes:
-        - name: welcome
+      mutex:
+        name: welcome
 status:
   finishedAt: null
   nodes:
