@@ -77,11 +77,10 @@ func (woc *wfOperationCtx) taskResultReconciliation() {
 
 		label := result.Labels[common.LabelKeyReportOutputsCompleted]
 		// If the task result is completed, set the state to true.
-		switch label {
-		case "true":
+		if label == "true" {
 			woc.log.Debugf("Marking task result complete %s", resultName)
 			woc.wf.Status.MarkTaskResultComplete(resultName)
-		case "false":
+		} else if label == "false" {
 			woc.log.Debugf("Marking task result incomplete %s", resultName)
 			woc.wf.Status.MarkTaskResultIncomplete(resultName)
 		}
@@ -121,7 +120,7 @@ func (woc *wfOperationCtx) taskResultReconciliation() {
 		if !reflect.DeepEqual(old, newNode) {
 			woc.log.
 				WithField("nodeID", nodeID).
-				Debug("task-result changed")
+				Info("task-result changed")
 			woc.wf.Status.Nodes.Set(nodeID, *newNode)
 			woc.updated = true
 		}

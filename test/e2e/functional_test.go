@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
@@ -158,6 +159,7 @@ spec:
 }
 
 func (s *FunctionalSuite) TestWorkflowRetention() {
+	listOptions := metav1.ListOptions{LabelSelector: "workflows.argoproj.io/phase=Failed"}
 	s.Given().
 		Workflow("@testdata/exit-1.yaml").
 		When().
@@ -173,7 +175,9 @@ func (s *FunctionalSuite) TestWorkflowRetention() {
 		When().
 		SubmitWorkflow().
 		WaitForWorkflow(fixtures.ToBeFailed).
-		WaitForWorkflowListFailedCount(2)
+		WaitForWorkflowList(listOptions, func(list []wfv1.Workflow) bool {
+			return len(list) == 2
+		})
 }
 
 // in this test we create a poi quota, and then  we create a workflow that needs one more pod than the quota allows
@@ -893,10 +897,9 @@ spec:
 		ExpectWorkflowNode(wfv1.SucceededPodNode, func(t *testing.T, n *wfv1.NodeStatus, p *apiv1.Pod) {
 			assert.Equal(t, int64(5), *p.Spec.TerminationGracePeriodSeconds)
 			for _, c := range p.Spec.Containers {
-				switch c.Name {
-				case "main":
+				if c.Name == "main" {
 					assert.Equal(t, "100m", c.Resources.Limits.Cpu().String())
-				case "wait":
+				} else if c.Name == "wait" {
 					assert.Equal(t, "101m", c.Resources.Limits.Cpu().String())
 				}
 			}
@@ -1371,7 +1374,7 @@ func (s *FunctionalSuite) TestTerminateWorkflowWhileOnExitHandlerRunning() {
 		ShutdownWorkflow(wfv1.ShutdownStrategyTerminate).
 		WaitForWorkflow(fixtures.ToBeFailed).
 		Then().
-		ExpectWorkflow(func(t *testing.T, metadata *metav1.ObjectMeta, status *wfv1.WorkflowStatus) {
+		ExpectWorkflow(func(t *testing.T, metadata *v1.ObjectMeta, status *wfv1.WorkflowStatus) {
 			for _, node := range status.Nodes {
 				if node.Type == wfv1.NodeTypeStepGroup || node.Type == wfv1.NodeTypeSteps {
 					assert.Equal(t, wfv1.NodeFailed, node.Phase)
@@ -1390,7 +1393,7 @@ func (s *FunctionalSuite) TestWorkflowExitHandlerCrashEnsureNodeIsPresent() {
 		WaitForWorkflow(fixtures.ToBeRunning).
 		WaitForWorkflow(fixtures.ToBeFailed).
 		Then().
-		ExpectWorkflow(func(t *testing.T, metadata *metav1.ObjectMeta, status *wfv1.WorkflowStatus) {
+		ExpectWorkflow(func(t *testing.T, metadata *v1.ObjectMeta, status *wfv1.WorkflowStatus) {
 			var hasExitNode bool
 			var exitNodeName string
 
@@ -1421,7 +1424,7 @@ func (s *FunctionalSuite) TestWorkflowParallelismStepFailFast() {
 		WaitForWorkflow(fixtures.ToBeRunning).
 		WaitForWorkflow(fixtures.ToBeFailed).
 		Then().
-		ExpectWorkflow(func(t *testing.T, metadata *metav1.ObjectMeta, status *wfv1.WorkflowStatus) {
+		ExpectWorkflow(func(t *testing.T, metadata *v1.ObjectMeta, status *wfv1.WorkflowStatus) {
 			assert.Equal(t, "template has failed or errored children and failFast enabled", status.Message)
 			assert.Equal(t, wfv1.NodeFailed, status.Nodes.FindByDisplayName("[0]").Phase)
 			assert.Equal(t, wfv1.NodeFailed, status.Nodes.FindByDisplayName("step1").Phase)
@@ -1437,7 +1440,7 @@ func (s *FunctionalSuite) TestWorkflowParallelismDAGFailFast() {
 		WaitForWorkflow(fixtures.ToBeRunning).
 		WaitForWorkflow(fixtures.ToBeFailed).
 		Then().
-		ExpectWorkflow(func(t *testing.T, metadata *metav1.ObjectMeta, status *wfv1.WorkflowStatus) {
+		ExpectWorkflow(func(t *testing.T, metadata *v1.ObjectMeta, status *wfv1.WorkflowStatus) {
 			assert.Equal(t, "template has failed or errored children and failFast enabled", status.Message)
 			assert.Equal(t, wfv1.NodeFailed, status.Nodes.FindByDisplayName("task1").Phase)
 			assert.Equal(t, wfv1.NodeSucceeded, status.Nodes.FindByDisplayName("task2").Phase)

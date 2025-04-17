@@ -20,19 +20,18 @@ func MustUnmarshal(text, v interface{}) {
 		if len(x) == 0 {
 			panic("no text to unmarshal")
 		}
-		switch x[0] {
-		case '@':
+		if x[0] == '@' {
 			filename := string(x[1:])
 			y, err := os.ReadFile(filepath.Clean(filename))
 			if err != nil {
 				panic(fmt.Errorf("failed to read file %s: %w", filename, err))
 			}
 			MustUnmarshal(y, v)
-		case '{':
+		} else if x[0] == '{' {
 			if err := json.Unmarshal(x, v); err != nil {
 				panic(fmt.Errorf("failed to unmarshal JSON %q: %w", string(x), err))
 			}
-		default:
+		} else {
 			if err := yaml.UnmarshalStrict(x, v); err != nil {
 				panic(fmt.Errorf("failed to unmarshal YAML %q: %w", string(x), err))
 			}

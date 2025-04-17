@@ -53,9 +53,9 @@ func Test_infoServer_GetInfo(t *testing.T) {
 		i := &infoServer{}
 		info, err := i.GetInfo(context.TODO(), nil)
 		require.NoError(t, err)
-		assert.Empty(t, info.ManagedNamespace)
+		assert.Equal(t, "", info.ManagedNamespace)
 		assert.Empty(t, info.Links)
 		assert.Empty(t, info.Columns)
-		assert.Empty(t, info.NavColor)
+		assert.Equal(t, "", info.NavColor)
 	})
 }

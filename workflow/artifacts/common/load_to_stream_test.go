@@ -116,7 +116,7 @@ func TestLoadToStream(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				assert.Len(t, filesAfter, len(filesBefore))
+				assert.Equal(t, len(filesBefore), len(filesAfter))
 			} else {
 				require.Error(t, err)
 				assert.Equal(t, tc.errMsg, err.Error())

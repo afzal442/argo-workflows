@@ -35,7 +35,7 @@ type offlineClient struct {
 	namespacedWorkflowTemplateGetterMap offlineWorkflowTemplateGetterMap
 }
 
-var ErrOffline = fmt.Errorf("not supported when you are in offline mode")
+var OfflineErr = fmt.Errorf("not supported when you are in offline mode")
 
 var _ Client = &offlineClient{}
 
@@ -129,11 +129,11 @@ func (c *offlineClient) NewClusterWorkflowTemplateServiceClient() (clusterworkfl
 }
 
 func (c *offlineClient) NewArchivedWorkflowServiceClient() (workflowarchivepkg.ArchivedWorkflowServiceClient, error) {
-	return nil, ErrNoArgoServer
+	return nil, NoArgoServerErr
 }
 
 func (c *offlineClient) NewInfoServiceClient() (infopkg.InfoServiceClient, error) {
-	return nil, ErrNoArgoServer
+	return nil, NoArgoServerErr
 }
 
 type offlineWorkflowTemplateNamespacedGetter struct {

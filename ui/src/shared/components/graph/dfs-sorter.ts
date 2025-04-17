@@ -3,8 +3,7 @@ import {Graph, Node} from './types';
 export class DfsSorter {
     private graph: Graph;
     private sorted: Node[] = [];
-    private discovered: Set<Node> = new Set<Node>(); // Fully visited
-    private visiting: Set<Node> = new Set<Node>(); // Currently in DFS call stack
+    private discovered: Set<Node> = new Set<Node>();
 
     constructor(g: Graph) {
         this.graph = g;
@@ -20,14 +19,7 @@ export class DfsSorter {
         if (this.discovered.has(n)) {
             return;
         }
-        if (this.visiting.has(n)) {
-            // Cycle detected, prevent infinite recursion
-            return;
-        }
-
-        this.visiting.add(n);
         this.graph.outgoingEdges(n).forEach(outgoing => this.visit(outgoing));
-        this.visiting.delete(n);
         this.discovered.add(n);
         this.sorted.push(n);
     }

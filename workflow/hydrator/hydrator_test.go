@@ -68,7 +68,7 @@ func TestHydrator(t *testing.T) {
 		})
 		t.Run("WorkflowTooLargeButOffloadNotSupported", func(t *testing.T) {
 			offloadNodeStatusRepo := &sqldbmocks.OffloadNodeStatusRepo{}
-			offloadNodeStatusRepo.On("Save", "my-uid", "my-ns", mock.Anything).Return("my-offload-version", sqldb.ErrOffloadNotSupported)
+			offloadNodeStatusRepo.On("Save", "my-uid", "my-ns", mock.Anything).Return("my-offload-version", sqldb.OffloadNotSupportedError)
 			hydrator := New(offloadNodeStatusRepo)
 			wf := &wfv1.Workflow{
 				ObjectMeta: metav1.ObjectMeta{UID: "my-uid", Namespace: "my-ns"},
@@ -96,7 +96,7 @@ func TestHydrator(t *testing.T) {
 		})
 		t.Run("OffloadingDisabled", func(t *testing.T) {
 			offloadNodeStatusRepo := &sqldbmocks.OffloadNodeStatusRepo{}
-			offloadNodeStatusRepo.On("Get", "my-uid", "my-offload-version").Return(nil, sqldb.ErrOffloadNotSupported)
+			offloadNodeStatusRepo.On("Get", "my-uid", "my-offload-version").Return(nil, sqldb.OffloadNotSupportedError)
 			hydrator := New(offloadNodeStatusRepo)
 			wf := &wfv1.Workflow{
 				ObjectMeta: metav1.ObjectMeta{UID: "my-uid"},

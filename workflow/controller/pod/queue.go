@@ -39,7 +39,7 @@ func (c *Controller) getPodCleanupPatch(pod *apiv1.Pod, labelPodCompleted bool) 
 			func(s string) bool { return s == common.FinalizerPodStatus })
 		if len(finalizers) != len(pod.Finalizers) {
 			un.SetFinalizers(finalizers)
-			un.SetResourceVersion(pod.ResourceVersion)
+			un.SetResourceVersion(pod.ObjectMeta.ResourceVersion)
 		}
 	}
 
@@ -110,7 +110,7 @@ func (c *Controller) processNextPodCleanupItem(ctx context.Context) bool {
 		c.workqueue.Done(key)
 	}()
 
-	namespace, podName, action := parsePodCleanupKey(podCleanupKey(key))
+	namespace, podName, action := parsePodCleanupKey(key.(podCleanupKey))
 	logCtx := c.log.WithFields(logrus.Fields{"key": key, "action": action, "namespace": namespace, "podName": podName})
 	logCtx.Info("cleaning up pod")
 	err := func() error {

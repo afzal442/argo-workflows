@@ -313,7 +313,7 @@ func newController(options ...interface{}) (context.CancelFunc, *WorkflowControl
 	{
 		wfc.metrics, testExporter, _ = metrics.CreateDefaultTestMetrics()
 		wfc.entrypoint = entrypoint.New(kube, wfc.Config.Images)
-		wfc.wfQueue = workqueue.NewTypedRateLimitingQueue(workqueue.DefaultTypedControllerRateLimiter[string]())
+		wfc.wfQueue = workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 		wfc.throttler = wfc.newThrottler()
 		wfc.rateLimiter = wfc.newRateLimiter()
 	}
@@ -756,7 +756,7 @@ func TestWorkflowController_archivedWorkflowGarbageCollector(t *testing.T) {
 	cancel, controller := newController()
 	defer cancel()
 
-	controller.archivedWorkflowGarbageCollector(context.Background())
+	controller.archivedWorkflowGarbageCollector(make(chan struct{}))
 }
 
 const wfWithTmplRef = `
@@ -920,10 +920,10 @@ metadata:
 spec:
  entrypoint: whalesay
  synchronization:
-   semaphores:
-     - configMapKeyRef:
-         name: my-config
-         key: workflow
+   semaphore:
+     configMapKeyRef:
+       name: my-config
+       key: workflow
  templates:
  - name: whalesay
    container:
@@ -1242,7 +1242,7 @@ func TestWorkflowWithLongArguments(t *testing.T) {
 	woc.operate(ctx)
 	assert.Equal(t, wfv1.WorkflowRunning, woc.wf.Status.Phase)
 
-	cms, err := controller.kubeclientset.CoreV1().ConfigMaps(woc.wf.ObjectMeta.Namespace).List(ctx, metav1.ListOptions{LabelSelector: common.LabelKeyWorkflow + "=" + woc.wf.Name})
+	cms, err := controller.kubeclientset.CoreV1().ConfigMaps(woc.wf.ObjectMeta.Namespace).List(ctx, metav1.ListOptions{LabelSelector: common.LabelKeyWorkflow + "=" + woc.wf.ObjectMeta.Name})
 	require.NoError(t, err)
 	assert.Len(t, cms.Items, 1)
 	assert.Contains(t, cms.Items[0].Data, common.EnvVarTemplate)
